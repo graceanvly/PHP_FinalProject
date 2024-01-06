@@ -9,43 +9,46 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <style>
         body {
-            background-color: #f8f9fa;
-            font-family: 'Nunito', sans-serif;
+            background-color: #f4f4f4;
+            font-family: 'Roboto', sans-serif;
         }
         .navbar-brand {
             font-weight: bold;
-            color: #2c3e50;
+            color: #3498db;
         }
         .panel {
             background-color: #ffffff;
             padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 12px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
         }
         .modal-content {
-            border-radius: 8px;
+            border-radius: 12px;
         }
-        .btn-primary, .btn-success {
+        .btn-primary, .btn-success, .btn-danger {
             margin-right: 10px;
         }
         .table {
             margin-top: 20px;
         }
         .table th {
-            background-color: #e9ecef;
+            background-color: #3498db;
+            color: #fff;
         }
         .editBtn, .deleteBtn {
             margin-right: 5px;
         }
         .modal-header {
-            background-color: #e9ecef;
+            background-color: #3498db;
             border-bottom: none;
+            color: #fff;
         }
         .modal-footer {
             border-top: none;
         }
         .btn-close {
             background: none;
+            color: #fff;
         }
     </style>
 </head>
@@ -59,8 +62,8 @@
     <div class="container">
         <div class="row mb-3">
             <div class="col">
-                <button id="listBtn" class="btn btn-primary"><i class="fas fa-list"></i> LIST</button>
-                <button id="addBtn" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addStudentModal"><i class="fas fa-plus"></i> ADD</button>
+                <button id="listBtn" class="btn btn-primary"><i class="fas fa-list"></i></button>
+                <button id="addBtn" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addStudentModal"><i class="fas fa-plus"></i> </button>
             </div>
         </div>
 
@@ -138,145 +141,35 @@
     </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/js/all.min.js"></script>
+<script>
 
-    <script src="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/js/all.min.js"></script>
-    <script>
+var addStudentModal = new bootstrap.Modal(document.getElementById('addStudentModal'));
+var editStudentModal = new bootstrap.Modal(document.getElementById('editStudentModal'));
 
-    var addStudentModal = new bootstrap.Modal(document.getElementById('addStudentModal'));
-    var editStudentModal = new bootstrap.Modal(document.getElementById('editStudentModal'));
-
-    document.getElementById('listBtn').addEventListener('click', function() {
-        fetchStudents();
-    });
-
-    document.getElementById('editStudentForm').addEventListener('submit', function(event) {
-    event.preventDefault();
-    const id = document.getElementById('editStudentId').value;
-    const editedName = document.getElementById('editStudentName').value;
-    const editedGrade = document.getElementById('editStudentGrade').value;
-
-    fetch(`/api/students/update/${id}`, {
-        method: 'PUT',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ name: editedName, grade: editedGrade }),
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error('Network response was not ok');
-        }
-        return response.json();
-    })
-    .then(data => {
-        alert('Student data updated successfully');
-        editStudentModal.hide();
-        fetchStudents();
-    })
-    .catch(error => {
-        console.error('Error updating student data:', error);
-        alert('Error updating student data');
-    });
+document.getElementById('listBtn').addEventListener('click', function() {
+    fetchStudents();
 });
 
-    function fetchStudents() {
-        fetch('/api/students/all')
-        .then(response => response.json())
-        .then(data => {
-            const studentList = document.getElementById('studentList');
-            studentList.innerHTML = ''; 
-            data.forEach(student => {
-                studentList.innerHTML += `
-                    <tr data-id='${student.id}' data-name='${student.name}' data-grade='${student.grade}'>
-                        <td>
-                            <button class='btn btn-primary editBtn' data-id='${student.id}'><i class='fas fa-edit'></i></button>
-                            <button class='btn btn-danger deleteBtn' data-id='${student.id}' onclick='deleteStudent(${student.id})'><i class='fas fa-trash-alt'></i></button>
-                        </td>
-                        <td>${student.id}</td>
-                        <td>${student.name}</td>
-                        <td>${student.grade}</td>
-                    </tr>
-                `;
-            });
-        })
-        .catch(error => {
-            console.error('Error fetching students:', error);
-        });
+document.getElementById('editStudentForm').addEventListener('submit', function(event) {
+event.preventDefault();
+const id = document.getElementById('editStudentId').value;
+const editedName = document.getElementById('editStudentName').value;
+const editedGrade = document.getElementById('editStudentGrade').value;
+
+fetch(`/api/students/update/${id}`, {
+    method: 'PUT',
+    headers: {
+        'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ name: editedName, grade: editedGrade }),
+})
+.then(response => {
+    if (!response.ok) {
+        throw new Error('Network response was not ok');
     }
-
-    document.getElementById('studentList').addEventListener('click', function(event) {
-        if (event.target && event.target.matches(".editBtn")) {
-            const id = event.target.getAttribute('data-id');
-            editStudent(id);
-        }
-        if (event.target && event.target.classList.contains('deleteBtn')) {
-            const id = event.target.getAttribute('data-id');
-            deleteStudent(id);
-        }
-    });
-
-    document.getElementById('addBtn').addEventListener('click', function() {
-        document.getElementById('studentName').value = '';
-        document.getElementById('studentGrade').value = '';
-    });
-
-    document.getElementById('addStudentForm').addEventListener('submit', function(event) {
-        event.preventDefault();
-        const studentName = document.getElementById('studentName').value;
-        const studentGrade = document.getElementById('studentGrade').value;
-
-        fetch('/api/students/add', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ name: studentName, grade: studentGrade }),
-        })
-        .then(response => response.json())
-        .then(data => {
-            addStudentModal.hide();
-            alert('New student added');
-            fetchStudents();
-        })
-        .catch(error => {
-            console.error('Error adding student:', error);
-        });
-    });
-
-    function editStudent(id) {
-        const studentRow = document.querySelector(`tr[data-id="${id}"]`);
-        const studentName = studentRow.getAttribute('data-name');
-        const studentGrade = studentRow.getAttribute('data-grade');
-
-        document.getElementById('editStudentId').value = id;
-        document.getElementById('editStudentName').value = studentName;
-        document.getElementById('editStudentGrade').value = studentGrade;
-
-        editStudentModal.show();
-    }
-
-    function deleteStudent(id) {
-        if (confirm('Are you sure you want to delete this student?')) {
-            fetch(`/api/students/delete/${id}`, { method: 'DELETE' })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    const deletedRow = document.querySelector(`tr[data-id="${id}"]`);
-                    if (deletedRow) {
-                        deletedRow.remove();
-                    }
-                    alert('Student deleted successfully');
-                } else {
-                    alert('Failed to delete student');
-                }
-            })
-            .catch(error => {
-                console.error('Error deleting student:', error);
-            });
-        }
-    }
-
-    fetchStudents();
-</script>
-</body>
-</html>
+    return response.json();
+})
+.then(data => {
+    alert('Student data updated successfully');
+    editStudentModal.hide
