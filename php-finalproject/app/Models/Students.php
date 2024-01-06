@@ -9,10 +9,9 @@ class Student extends Model
 {
     use HasFactory;
 
-    protected $table = 'students';
+    protected $table = "student";
 
-    protected $fillable = [
-        'name',
-        'grade'
-    ];
+    protected $fillable = ["id", "name", "grade"];
+
+    public $timestamps = false; 
 }
